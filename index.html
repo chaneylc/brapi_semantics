@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biological Terminology Dictionary</title>
+    <style>
+        /* Basic styling for readability */
+        body { font-family: sans-serif; margin: 20px; }
+        .dictionary-container { max-width: 900px; margin: auto; }
+        .dictionary-entry { border: 1px solid #eee; margin-bottom: 15px; padding: 15px; border-radius: 5px; }
+        .dictionary-entry h3 { color: #333; margin-top: 0; }
+        .description-section { margin-top: 10px; }
+        .description-section strong { display: block; margin-bottom: 5px; color: #555; }
+        .search-input { width: 100%; padding: 8px; margin-bottom: 15px; box-sizing: border-box; }
+        .sort-button { padding: 8px 15px; margin-right: 10px; cursor: pointer; }
+		.dictionary-entry {
+			background: #f8f9fa;
+			border: 2px solid #ccc;
+			border-radius: 8px;
+			padding: 16px;
+			margin: 20px auto;
+			box-shadow: 2px;
+		}
+		h1 {
+			display: flex;
+			align-items: center;
+			font-size: 2rem;
+			gap: 10px; /* Adds spacing between the logo and text */
+		}
+
+		.logo {
+			width: 128px; /* Adjust as needed */
+			height: auto;
+		}
+
+    </style>
+</head>
+<body>
+
+    <div id="dictionary-terms" class="dictionary-container">
+        <h1>
+			<img src="brapi-logo.png" alt="BrAPI Logo" class="logo">
+			In Common Language
+		</h1>
+
+        <input class="fuzzy-search search-input" placeholder="Search terms, descriptions..." />
+        <button class="sort sort-button" data-sort="term">Sort by Term</button>
+        <!-- You could add more sort buttons for other fields if desired -->
+
+        <div class="list">
+            <!-- List.js will populate this area with dictionary entries -->
+        </div>
+    </div>
+
+    <!-- Include List.js library -->
+    <!-- In a real scenario, you would link to the List.js file you downloaded -->
+    <script src="list.js"></script>
+    <script>
+        // Your dictionary data based on our previous conversation
+const dictionaryData = [
+  {
+    "term": "Allele",
+    "biologicalDescription": "An **allele** refers to the different forms of a gene or a genetic variant. In the context of `AlleleMatrix` data, allele information is stored in `dataMatrices` where the key word \"GT\" is reserved for the allele matrix, representing \"Genotype\" [1-4].",
+    "eli5Description": "A version of a gene. Like how you might have blue eyes or brown eyes, those are different \"alleles\" for eye color.",
+    "examples": "The abbreviated code for the allele matrix is \"GT\", standing for \"Genotype\" [3, 4].",
+    "relatedTerminology": "Synonym: BrAllele [5]. Related to Genotype, Call, Variant, Allele Matrix."
+  },
+  {
+    "term": "Allele Matrix",
+    "biologicalDescription": "The **allele matrix** is a two-dimensional array of data, serving as the core matrix or an additional layer of metadata associated with each genotype value [2]. It is aligned with `callSetDbIds` as columns and `variantDbIds` as rows, ensuring the same size and orientation across all data matrices [1, 2]. The key word \"GT\" is reserved for the allele matrix, representing \"Genotype\" [3, 4].",
+    "eli5Description": "A big table that shows all the genetic test results (alleles) for many different plant samples and many different DNA spots.",
+    "examples": "The abbreviation \"GT\" and name \"Genotype\" are reserved for the allele matrix [3, 4].",
+    "relatedTerminology": "CallSet, Variant, Data Matrix, Genotype, Homozygotes Expansion, Unphased Allele Separator, Unknown String."
+  },
+  {
+    "term": "Analysis",
+    "biologicalDescription": "An **analysis** represents an interpretation of one or several experiments, such as SNVs, copy number variations, or methylation status, combined with information about the methodology used [6]. It has a unique identifier (`analysisDbId`), a human-readable name (`analysisName`), a description, a `type`, and includes creation and update timestamps and a list of software used [7, 8]. This is a component of a `VariantSet` [9].",
+    "eli5Description": "The way we process and understand the raw data from experiments, like figuring out what all the DNA changes mean.",
+    "examples": "Types of interpretation include \"SNVs\", \"copy number variations\", and \"methylation status\" [6].",
+    "relatedTerminology": "VariantSet."
+  },
+  {
+    "term": "Call",
+    "biologicalDescription": "A **call** represents a specific variant call belonging to a `CallSet`, detailing the `genotypeValue` (the value of this genotype call) and any associated `genotypeMetadata` [10-12]. It includes the `callSetDbId` and `variantDbId` it relates to, and optionally, a `phaseSet` string that implies the phase of the bases [10, 12, 13]. Genotype metadata can include fields like \"Genotype Quality\" (\"GQ\"), \"Read Depth\" (\"RD\"), and \"Haplotype Quality\" (\"HQ\") [14].",
+    "eli5Description": "The result of a test that tells us what version of a gene (allele) a plant has at a specific DNA spot. It can also include extra details about how good the test result is.",
+    "examples": "Genotype metadata abbreviations include \"GQ\", \"RD\", and \"HQ\"; names include \"Genotype Quality\", \"Read Depth\", and \"Haplotype Quality\" [14]. Data types for genotype metadata can be \"string\", \"integer\", \"float\", or \"boolean\" [11].",
+    "relatedTerminology": "Synonym: BrCall [5]. CallSet, Variant, Allele, Genotype, Genotype Quality, Read Depth, Haplotype Quality, Phase Set."
+  },
+  {
+    "term": "CallSet",
+    "biologicalDescription": "A **CallSet** is defined as a unique combination of a `Sample` and a sequencing event, and often has a 1-to-1 relationship with `Samples` [1]. It is uniquely identified by `callSetDbId`, has a human-readable `callSetName`, and includes creation/update dates, external references, the `sampleDbId` it was generated from, and the `variantSetDbIds` it contains calls in [15-18]. CallSets are used as columns in the `AlleleMatrix` [1].",
+    "eli5Description": "A collection of all the genetic test results (calls) for one specific plant sample from one sequencing event.",
+    "examples": "CallSets often have a 1-to-1 relationship with Samples [1].",
+    "relatedTerminology": "Call, Sample, VariantSet, Allele Matrix."
+  },
+  {
+    "term": "Common Crop Name",
+    "biologicalDescription": "The **common name of a crop** is used for multi-crop systems [19]. This field appears across various BrAPI entities to specify the crop associated with the data, such as for `CrossingProject` [19], `Germplasm` [20], `GenomeMap` [21], `Program` [22], `Reference` [23], `ReferenceSet` [24], `Study` [25], `Trial` [26], and `Variable` [27].",
+    "eli5Description": "The usual name for the plant, like \"corn\" or \"rice.\"",
+    "examples": "\"Maize\", \"Wheat\" [22, 27], \"malting barley\", \"mas\" [20].",
+    "relatedTerminology": "Crop (concept)."
+  },
+  {
+    "term": "Contacts",
+    "biologicalDescription": "**Contacts** are entities associated with a trial or study, providing information about individuals involved [28, 29]. Each contact includes a unique ID (`contactDbId`), email address, institute name, full name, ORCID, and their `type` or role (e.g., Coordinator, Scientist, PI) [28-33]. This information is mapped from MIAPPE Person fields [34-36].",
+    "eli5Description": "The people involved in the experiment, like the main scientist or the helper, and how to reach them.",
+    "examples": "Contact `type` can be \"Coordinator\", \"Scientist\", or \"PI\" [31, 33].",
+    "relatedTerminology": "Person, Trial, Study."
+  },
+  {
+    "term": "Cross",
+    "biologicalDescription": "A **cross** describes a specific breeding event, identified by a unique ID (`crossDbId`) and a human-readable name (`crossName`) [37]. It defines the `crossType` (e.g., 'BIPARENTAL', 'SELF', 'DOUBLE_HAPLOID'), includes custom attributes (`crossAttributes`), references to `parent1` and `parent2` germplasm and observation units, and lists `pollinationEvents` with details like success status and timestamp [38-44]. It can also link to a `crossingProjectDbId` and `plannedCrossDbId` [39, 43].",
+    "eli5Description": "When two parent plants are bred together to create new offspring plants. It's like a plant family tree record.",
+    "examples": "Possible `crossType` values include \"BIPARENTAL\", \"SELF\", \"OPEN_POLLINATED\", \"BULK\", \"BULK_SELFED\", \"BULK_OPEN_POLLINATED\", and \"DOUBLE_HAPLOID\" [39]. Parent `parentType` examples include 'MALE', 'FEMALE', 'SELF', 'POPULATION' [41, 42].",
+    "relatedTerminology": "Planned Cross, Crossing Project, Germplasm, Observation Unit."
+  },
+  {
+    "term": "Crossing Project",
+    "biologicalDescription": "A **crossing project** is a unique initiative for breeding, identified by a unique ID (`crossingProjectDbId`) and a human-readable name (`crossingProjectName`) [19, 45]. It includes a description, common crop name, and a list of `potentialParents` (germplasm and observation units with parent types like 'MALE', 'FEMALE', 'SELF', 'POPULATION') available in the crossing block [45-47]. It is associated with a `programDbId` [48].",
+    "eli5Description": "A project focused on breeding plants, like \"creating new drought-resistant corn varieties.\" It lists all the potential parent plants that can be used.",
+    "examples": "Parent `parentType` examples: 'MALE', 'FEMALE', 'SELF', 'POPULATION' [47].",
+    "relatedTerminology": "Cross, Planned Cross, Germplasm, Program."
+  },
+  {
+    "term": "Data Links",
+    "biologicalDescription": "A **data link** provides information about extra data files associated with a study, such as notes, images, and reference data [49]. It includes the `url` for the file, its `name` and `description`, `dataFormat` (e.g., VCF, table), `fileFormat` (e.g., text/csv, application/excel), `provenance`, `scientificType` (e.g., Genotyping, Phenotyping raw data), and `version` [50-53]. This maps to MIAPPE Data File fields [54, 55].",
+    "eli5Description": "A link to other files related to the experiment, like pictures, notes, or raw data.",
+    "examples": "Data `dataFormat` examples: \"VCF\", \"table\", \"image archive\", \"multispectral image archives\" [50]. File `fileFormat` examples: \"text/csv\", \"application/excel\", \"application/zip\" [51]. Scientific `scientificType` examples: \"Genotyping\", \"Phenotyping raw data\", \"Phenotyping reduced data\", \"Environmental\" [52].",
+    "relatedTerminology": "Study."
+  },
+  {
+    "term": "Environment Parameters",
+    "biologicalDescription": "**Environment parameters** are characteristics of the environment that remained constant throughout a study and did not change between observation units [56]. They include a human-readable `description`, `parameterName`, PUI for the parameter and its `unit`, and a `value` that can be numerical or categorical [56-58]. These are mapped from MIAPPE Environment fields [59, 60].",
+    "eli5Description": "Things about the weather or growing conditions that stayed the same for the whole experiment, like the temperature or how much light the plants got.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Study."
+  },
+  {
+    "term": "Event",
+    "biologicalDescription": "An **event** describes an occurrence or activity, identified by a unique ID (`eventDbId`) and an `eventType` (e.g., fertilizer, irrigation) [61, 62]. It includes an `eventDescription`, `eventDateRange` (which can be `discreteDates`, `startDate`, or `endDate`), a list of `eventParameters` (with code, description, name, units, value), and associated `observationUnitDbIds` and `studyDbId` [61, 63-70]. It maps to MIAPPE Event fields [71, 72].",
+    "eli5Description": "Something that happened to the plants or in the field, like \"watering\" or \"harvesting.\" It tells you what happened, when, and where.",
+    "examples": "Event `eventType` examples: \"fertilizer\", \"irrigation\", \"tillage\" [62]. ICASA Management events include: \"planting\", \"fertilizer\", \"irrigation\", \"tillage\", \"organic_material\", \"harvest\", \"bed_prep\", \"inorg_mulch\", \"inorg_mul_rem\", \"chemicals\", \"mowing\", \"observation\", \"weeding\", \"puddling\", \"flood_level\", \"other\" [62, 69]. `eventParameters.units` can be 'code', 'text', 'boolean', 'date', 'ml', 'cm' [66].",
+    "relatedTerminology": "Observation Unit, Study."
+  },
+  {
+    "term": "Experimental Design",
+    "biologicalDescription": "The **experimental design** describes the setup and statistical plan of a study, including a `description` and a PUI (Permanent Unique Identifier) representing the `type` of design, often from a crop research ontology or agronomy ontology [58, 73]. This maps to MIAPPE Description of the experimental design fields [74].",
+    "eli5Description": "The plan for how an experiment is set up and how the data will be looked at, like deciding where to plant different types of seeds.",
+    "examples": "Description can be \"unknown\"/\"NA\", \"aggregated/reduced data\", or \"none\" [73].",
+    "relatedTerminology": "Study."
+  },
+  {
+    "term": "Genotype",
+    "biologicalDescription": "The **genotype** refers to the genetic constitution of an individual organism. In the `AlleleMatrix`, the `dataMatrixAbbreviation` \"GT\" and `dataMatrixName` \"Genotype\" are specifically reserved for the allele matrix, which holds the allele data [3, 4]. A `Call` object contains the `genotypeValue` and additional `genotypeMetadata` associated with the genotype, such as \"Genotype Quality\", \"Read Depth\", and \"Haplotype Quality\" [11, 12, 14].",
+    "eli5Description": "The specific combination of gene versions (alleles) that a plant has at a certain DNA spot. It's what makes the plant unique inside.",
+    "examples": "Genotype metadata includes 'Genotype Quality' (GQ), 'Read Depth' (RD), and 'Haplotype Quality' (HQ) [14].",
+    "relatedTerminology": "Allele, Call, Genotype Quality, Read Depth, Haplotype Quality."
+  },
+  {
+    "term": "Germplasm",
+    "biologicalDescription": "**Germplasm** refers to a collection of genetic resources, identified by a unique ID (`germplasmDbId`) and a human-readable name (`germplasmName`) [75, 76]. It includes details such as accession number, acquisition date, biological status (e.g., wild, cultivar, breeding material), breeding method, common crop name, country of origin, donor information, scientific name (genus, species, subtaxa), pedigree, seed source, storage types, synonyms, and taxonomy IDs [20, 75-92]. It also has a Permanent Unique Identifier (`germplasmPUI`) and can include `germplasmOrigin` geographic coordinates [83, 93]. This maps to MIAPPE Biological Material fields [94-100].",
+    "eli5Description": "A collection of plant seeds or living plants that we keep and use for future growing or research because they have special traits.",
+    "examples": "Biological status codes include: \"100\" (Wild), \"200\" (Weedy), \"300\" (Traditional cultivar/landrace), \"400\" (Breeding/research material), \"500\" (Advanced or improved cultivar), \"600\" (GMO) [79]. Storage types: \"10\" (Seed collection), \"20\" (Field collection), \"30\" (In vitro collection), \"40\" (Cryo-preserved collection), \"50\" (DNA collection) [89]. Pedigree example: 'Hanna/7*Atlas//Turk/8*Atlas' [86].",
+    "relatedTerminology": "Breeding Method, Cross, Pedigree Node, Seed Lot, Germplasm Attribute, Germplasm Attribute Value."
+  },
+  {
+    "term": "Germplasm Attribute",
+    "biologicalDescription": "A **germplasm attribute** defines a characteristic or feature of a germplasm that can be measured or described, identified by a unique ID (`attributeDbId`) and a human-readable name (`attributeName`) [101, 102]. It includes an `attributeCategory`, `attributeDescription`, PUI, common crop name, `contextOfUse`, `defaultValue`, `growthStage`, institution, language, associated `method` of measurement, `ontologyReference`, `scale` of measurement, and `trait` definition [101-112]. It is similar to an `ObservationVariable` but specifically for germplasm characteristics.",
+    "eli5Description": "A description of a specific feature of a plant, like \"leaf color\" or \"plant height,\" and how we measure it.",
+    "examples": "Context of use: \"Trial evaluation\", \"Nursery evaluation\" [103]. Default value: \"red\", \"2.3\" [103]. Growth stage: \"flowering\" [105]. `methodClass` examples: \"Measurement\", \"Counting\", \"Estimation\", \"Computation\" [106]. Scale `dataType` examples: \"Code\", \"Date\", \"Duration\", \"Nominal\", \"Numerical\", \"Ordinal\", \"Text\" [113, 114].",
+    "relatedTerminology": "Germplasm, Germplasm Attribute Value, Method, Scale, Trait, Ontology, ObservationVariable."
+  },
+  {
+    "term": "Germplasm Attribute Value",
+    "biologicalDescription": "A **germplasm attribute value** represents the specific measured `value` of an attribute for a given germplasm [115]. It is identified by a unique ID (`attributeValueDbId`), links to the `attributeDbId` and `germplasmDbId`, and records the `determinedDate` when the value was obtained [116-118].",
+    "eli5Description": "The actual number or description we found for a plant's specific feature, like \"The leaf color is red.\"",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Germplasm, Germplasm Attribute."
+  },
+  {
+    "term": "Genome Map",
+    "biologicalDescription": "A **genome map** (`GenomeMap`) is a representation of the organization of a genome, identified by a unique ID (`mapDbId`) and a human-readable name (`mapName`) [119]. It includes information about `commonCropName`, `documentationURL`, the `linkageGroupCount` (number of linkage groups), `markerCount` (number of markers), `publishedDate`, `scientificName`, map `type` (e.g., \"Genetic\" or \"Physical\"), and `unit` used for data description [21, 119-121].",
+    "eli5Description": "A map of a plant's entire DNA, showing where different genes or markers are located and how far apart they are.",
+    "examples": "Map `type` can be \"Genetic\" or \"Physical\" [120].",
+    "relatedTerminology": "Linkage Group, Marker, MarkerPosition."
+  },
+  {
+    "term": "Growth Facility",
+    "biologicalDescription": "Describes the facility in which a study was carried out, including a short `description` and a PUI (Permanent Unique Identifier) that refers to the `type` of growth facility (e.g., from the Crop Ontology) [122, 123]. This maps to MIAPPE Description and Type of growth facility fields [124].",
+    "eli5Description": "The place where the plants were grown, like a greenhouse or a special farm area.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Study."
+  },
+  {
+    "term": "Haplotype",
+    "biologicalDescription": "A **haplotype** is implied by the presence of `Haplotype Quality` (\"HQ\") as a type of `genotypeMetadata` associated with a `Call` [14]. It is also strongly related to the `phaseSet` information in a `Call`, which, if populated, indicates that the genotype ordering implies the phase of the bases and is consistent with other variant calls on the same contig having the same phase set string [12].",
+    "eli5Description": "A set of gene versions on a single chromosome that are inherited together from one parent. It's like a specific version of a DNA segment passed down as a block.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Haplotype Quality, Phase Set, Genotype, Call."
+  },
+  {
+    "term": "Haplotype Quality",
+    "biologicalDescription": "**Haplotype Quality** is an additional layer of `genotypeMetadata` associated with each `genotypeValue` in a `Call` [11]. It has an abbreviated code \"HQ\" and a name \"Haplotype Quality\", mapping to a FORMAT field in the VCF file standard [14].",
+    "eli5Description": "How good the information is about which gene versions came from the mother and which from the father.",
+    "examples": "Abbreviated code: \"HQ\" [14]. Name: \"Haplotype Quality\" [14].",
+    "relatedTerminology": "Genotype Metadata, Call, Genotype Quality, Read Depth, Haplotype."
+  },
+  {
+    "term": "Homozygotes Expansion",
+    "biologicalDescription": "`expandHomozygotes` is a boolean flag that determines whether homozygous genotypes should be **expanded** (true, showing both occurrences) or **collapsed into a single occurrence** (false) [125]. This setting applies to `AlleleMatrix` responses and `VariantSet` `availableFormats` [125, 126].",
+    "eli5Description": "A setting that decides if we show both copies of a gene when they are exactly the same (expanded) or if we just say \"it has two of the same\" (collapsed).",
+    "examples": "Values can be `true` or `false` [125, 126].",
+    "relatedTerminology": "Allele Matrix, VariantSet."
+  },
+  {
+    "term": "Image",
+    "biologicalDescription": "An **image** record stores metadata about a visual representation, identified by a unique ID (`imageDbId`) and `imageFileName` [127]. It includes `copyright` information, a human-readable `description`, `descriptiveOntologyTerms`, `imageFileSize`, `imageHeight`, `imageWidth`, `mimeType`, `imageLocation` (GeoJSON coordinates), `imageName`, `imageTimeStamp` when taken, and an `imageURL` for the file [128-133]. It can be associated with `observationDbIds` or an `observationUnitDbId` [134].",
+    "eli5Description": "A picture taken of plants or experiments, with details like when and where it was taken, and what it shows.",
+    "examples": "Image `mimeType` examples: 'image/jpeg', 'image/png', 'image/svg' [133].",
+    "relatedTerminology": "Observation, Observation Unit, Location."
+  },
+  {
+    "term": "Linkage Group",
+    "biologicalDescription": "A **linkage group** is identified by its `linkageGroupName`, which is a uniquely identifiable name within a `GenomeMap` [135]. This name might be a chromosome identifier or a more generic linkage group identifier if chromosomes are not applicable [135]. The `GenomeMap` also tracks the total `linkageGroupCount` [119].",
+    "eli5Description": "A group of genes on a plant's DNA that are usually inherited together, like a chapter in a book of DNA. Sometimes it's a whole chromosome.",
+    "examples": "The `linkageGroupName` might be a chromosome identifier [135].",
+    "relatedTerminology": "Genome Map, Marker, MarkerPosition."
+  },
+  {
+    "term": "List",
+    "biologicalDescription": "A **list** is a collection of unique identifiers (`DbIds`) of other objects, identified by a unique ID (`listDbId`) and a human-readable name (`listName`) [136, 137]. It includes metadata such as creation and modification dates, `listOwnerName`, `listOwnerPersonDbId`, `listSize` (number of elements), `listSource` (origin description), and `listType` which indicates the type of objects it contains [136, 138-140].",
+    "eli5Description": "A custom collection of things, like a playlist for songs, but for plant data. You can put plant names, experiment IDs, or other items into it.",
+    "examples": "List `listType` can be \"germplasm\", \"markers\", \"variants\", \"programs\", \"trials\", \"studies\", \"observationUnits\", \"observations\", \"observationVariables\", or \"samples\" [140].",
+    "relatedTerminology": "List.js (JavaScript library for list manipulation) [141]."
+  },
+  {
+    "term": "Location",
+    "biologicalDescription": "A **location** represents a physical place (e.g., experimental site, institute address) identified by a unique ID (`locationDbId`) and a human-readable name (`locationName`) [142, 143]. It includes precise geographic `coordinates` (longitude, latitude, altitude) in GeoJSON format, `coordinateDescription`, `coordinateUncertainty`, `countryCode` (ISO 3166-1 alpha-3) and `countryName`, `environmentType`, `exposure`, `instituteAddress`, `instituteName`, `locationType` (e.g., Field Station), `parentLocationDbId` and `parentLocationName` for hierarchical organization, `siteStatus`, `slope`, and `topography` [142-151]. It maps to MIAPPE Geographic location and Experimental site name fields [152-154].",
+    "eli5Description": "A place, like a farm field or a lab, where plants are grown or experiments are done. It tells you its name, where it is on a map, and what kind of place it is.",
+    "examples": "Country `countryCode` follows ISO_3166-1_alpha-3 [147]. `environmentType` examples: \"forest\", \"field\", \"nursery\" [148]. `siteStatus` examples: \"Public\", \"Private\" [150]. `topography` examples: \"Plateau\", \"Cirque\", \"Hill\", \"Valley\" [151].",
+    "relatedTerminology": "Study, Observation Unit, Image."
+  },
+  {
+    "term": "Locus",
+    "biologicalDescription": "While not explicitly defined as a separate BrAPI entity in the sources, a **locus** refers to a specific fixed position on a chromosome or genomic region where a particular gene or genetic marker is located. This concept is represented by fields such as `start` and `end` positions in `Variant` objects [155, 156], `position` on a `LinkageGroup` in `MarkerPosition` [157], and is inherently tied to `Reference` sequences [158].",
+    "eli5Description": "The specific spot on a plant's DNA where a gene or a genetic change is located.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "MarkerPosition, Variant, Reference, Linkage Group."
+  },
+  {
+    "term": "Marker",
+    "biologicalDescription": "A **marker** is a specific DNA sequence that can be used to identify individuals or trace traits. In the context of `MarkerPosition`, a `Variant` can also represent a `Marker` [157, 159]. Its position is defined by `linkageGroupName` (e.g., chromosome identifier) and `position` within a `GenomeMap` [135, 157]. The `GenomeMap` also reports a `markerCount` [120].",
+    "eli5Description": "A specific spot on a plant's DNA that scientists can use to find genes or follow traits from one plant generation to the next.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Variant, Genome Map, Linkage Group, MarkerPosition."
+  },
+  {
+    "term": "Observation",
+    "biologicalDescription": "An **observation** represents a collected data point for a specific `ObservationVariable` on a `Germplasm` within an `ObservationUnit` [160, 161]. It has a unique ID (`observationDbId`), records the `value` collected, the `collector`, and the `observationTimeStamp` [160, 162, 163]. It links to the `germplasmDbId`, `observationUnitDbId`, `observationVariableDbId`, `season`, and `studyDbId` [160, 161, 164, 165]. Optionally, it can include `geoCoordinates` for where the observation was made [166, 167].",
+    "eli5Description": "A single piece of information measured or seen about a plant, like \"this plant is 10 inches tall,\" along with when and where it was measured.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Observation Unit, Observation Variable, Germplasm, Study, Season, Image."
+  },
+  {
+    "term": "Observation Levels",
+    "biologicalDescription": "**Observation levels** indicate the hierarchical granularity at which measurements are taken within a study, from higher levels like 'field' to lower levels like 'plant' or 'sample' [168-170]. Each level has a `levelName` (e.g., \"study\", \"field\", \"plot\"), a `levelOrder` (where lower numbers signify higher hierarchy, e.g., field -> 1, plant -> 9), and a `levelCode` (an ID or number for the real thing) [171-177]. This is also mapped to MIAPPE Observation unit level hierarchy [178].",
+    "eli5Description": "How big or small an area we are looking at. Like, are we looking at the whole field, or just one tiny plant, or even just one leaf on a plant?",
+    "examples": "Standard `levelName`s include: \"study\", \"field\", \"entry\", \"rep\", \"block\", \"sub-block\", \"plot\", \"sub-plot\", \"plant\", \"pot\", \"sample\" [172, 174, 176]. `levelOrder` examples: field -> 1, plant -> 9 [168, 175, 177]. `levelCode` examples: 'plot number' or 'F3' for a field [171, 173].",
+    "relatedTerminology": "Study, Observation Unit."
+  },
+  {
+    "term": "Observation Variable",
+    "biologicalDescription": "An **observation variable** defines a measurable trait or characteristic that is observed. It is identified by a unique ID (`observationVariableDbId`) and a human-readable name (`observationVariableName`) [179]. It includes details such as `commonCropName`, `contextOfUse`, `defaultValue`, `growthStage`, `institution` submitting, `language`, `method` of observation, `ontologyReference`, `scale` of measurement, `scientist` submitting, `status` (e.g., \"recommended\"), `submissionTimestamp`, `synonyms`, and the underlying `trait` definition [27, 179-187]. It is broadly mapped to MIAPPE Variable and Trait fields [188-193].",
+    "eli5Description": "Something specific we want to measure or watch on a plant, like \"how tall it is\" or \"what color its flower is.\" It also says how we measure it.",
+    "examples": "Common crop names: \"Maize\", \"Wheat\" [27]. Context of use: \"Trial evaluation\", \"Nursery evaluation\" [180]. Default value: \"red\", \"2.3\" [180]. Growth stage: \"flowering\" [181]. Status: \"recommended\", \"obsolete\", \"legacy\" [185, 187]. `traitClass` examples: \"morphological\", \"phenological\", \"agronomical\" [194].",
+    "relatedTerminology": "Synonym: Variable. **Additional**: Traits (Field Book, EBS). Trait, Method, Scale, Ontology, Observation, Germplasm Attribute."
+  },
+  {
+    "term": "Observation Unit",
+    "biologicalDescription": "An **observation unit** is the entity on which observations are made within a study, uniquely identified by `observationUnitDbId` and `observationUnitName` [195]. It captures positional and layout information (`observationUnitPosition`), associated `germplasmDbId`, `locationDbId`, `programDbId`, `seedLotDbId`, `studyDbId`, and `trialDbId` [196-200]. It also details `treatments` applied and can contain `observations` [199, 201]. It is mapped to MIAPPE Observation Unit fields [202-204].",
+    "eli5Description": "The specific plant, pot, or area in a field where we watch and measure things. It's like one square on a grid in a garden.",
+    "examples": "Entry types: \"CHECK\", \"TEST\", \"FILLER\" [205]. Position coordinate types: \"LONGITUDE\", \"LATITUDE\", \"PLANTED_ROW\", \"PLANTED_INDIVIDUAL\", \"GRID_ROW\", \"GRID_COL\", \"MEASURED_ROW\", \"MEASURED_COL\" [198, 206]. `observationLevel` `levelName` examples: \"study\", \"field\", \"entry\", \"rep\", \"block\", \"sub-block\", \"plot\", \"sub-plot\", \"plant\", \"pot\", \"sample\" [171, 172, 174]. Treatment `factor` examples: 'fertilizer', 'inoculation', 'irrigation' [207].",
+    "relatedTerminology": "**Additional**: Plot (EBS). Observation, Observation Levels, Germplasm, Location, Study, Trial, Seed Lot, Cross, Event, Image."
+  },
+  {
+    "term": "Ontology",
+    "biologicalDescription": "An **ontology** provides a structured vocabulary for biological concepts. The `Ontology` object itself stores metadata about the ontology, including its unique ID (`ontologyDbId`), `ontologyName`, `version`, `authors`, `copyright`, `description`, `documentationURL`, and `licence` [208-210]. It is referenced by `ObservationVariables`, `GermplasmAttributes`, `Methods`, and `Scales` to link to controlled vocabularies like Crop Ontology [107, 211-224].",
+    "eli5Description": "A special dictionary of scientific words that helps everyone use the same words and understand each other when talking about plants and experiments.",
+    "examples": "Examples of `documentationLinks.type`: \"OBO\", \"RDF\", \"WEBPAGE\" [212, 215, 218, 221, 223].",
+    "relatedTerminology": "Observation Variable, Germplasm Attribute, Method, Scale, Trait."
+  },
+  {
+    "term": "Pedigree Node",
+    "biologicalDescription": "A **pedigree node** represents a specific germplasm within a pedigree tree, providing its unique ID (`germplasmDbId`), `germplasmName`, and `germplasmPUI` [225, 226]. It details its `breedingMethodDbId` and `breedingMethodName`, `crossingProjectDbId`, `crossingYear`, `defaultDisplayName`, `familyCode`, and lists its direct `parents`, `progeny`, and `siblings` with their `parentType` relationships (e.g., MALE, FEMALE, SELF, POPULATION, CLONAL) [227-235]. It can also include a `pedigreeString` in PURDY notation [231].",
+    "eli5Description": "A single plant in a family tree, showing who its parents are, who its children are, and how it was bred.",
+    "examples": "Parent `parentType` values: 'MALE', 'FEMALE', 'SELF', 'POPULATION', 'CLONAL' [231, 234]. Example `pedigreeString`: 'Hanna/7*Atlas//Turk/8*Atlas' [86, 231].",
+    "relatedTerminology": "Germplasm, Breeding Method, Cross, Crossing Project."
+  },
+  {
+    "term": "Person",
+    "biologicalDescription": "A **person** entity stores information about an individual, identified by a unique ID (`personDbId`) [236]. It includes `firstName`, `lastName`, `middleName`, `emailAddress`, `mailingAddress`, `phoneNumber`, and an optional system `userID` [236-239]. Persons are often listed as `contacts` in `Trial` and `Study` entities [28, 29].",
+    "eli5Description": "Information about someone involved in the plant studies, like their name and how to reach them.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Contacts."
+  },
+  {
+    "term": "Phase Set",
+    "biologicalDescription": "If populated, the `phaseSet` field in a `Call` indicates that this variant call's genotype ordering implies the **phase of the bases** and is consistent with any other variant calls on the same contig which have the same `phaseSet` string [12].",
+    "eli5Description": "A label that tells us if we know for sure which of the two gene versions came from the mother and which from the father.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Call, Haplotype, Unphased Allele Calls."
+  },
+  {
+    "term": "Plate",
+    "biologicalDescription": "A **plate** is a physical container used to organize `Samples`, identified by a unique ID (`plateDbId`), a human-readable name (`plateName`), and a `plateBarcode` [240, 241]. It defines the `plateFormat` (e.g., \"PLATE_96\" for a 96-well plate or \"TUBES\" for a plateless format) and the `sampleType` it contains (e.g., \"DNA\", \"RNA\", \"Tissue\") [241, 242]. It can be associated with a `programDbId`, `studyDbId`, and `trialDbId` [242, 243].",
+    "eli5Description": "A tray with many small holes (like a Muffin tin) where tiny plant samples are put for testing.",
+    "examples": "Plate `plateFormat` examples: \"PLATE_96\", \"TUBES\" [241]. Sample `sampleType` examples: \"DNA\", \"RNA\", \"TISSUE\", \"MIXED\" [242].",
+    "relatedTerminology": "Sample, Sample Plate Location, Program, Study, Trial."
+  },
+  {
+    "term": "Planned Cross",
+    "biologicalDescription": "A **planned cross** represents a breeding cross that is intended to be performed. It includes information about the `crossType` (e.g., \"BIPARENTAL\", \"SELF\"), references to `parent1` and `parent2` germplasm and observation units, the `crossingProjectDbId` and `crossingProjectName` it belongs to, and its `status` (e.g., \"TODO\", \"DONE\", \"SKIPPED\") [244-249].",
+    "eli5Description": "A breeding plan that says which two plants are going to be crossed together and what kind of crossing it will be. It also tracks if it's done or not.",
+    "examples": "Cross `crossType` examples: \"BIPARENTAL\", \"SELF\", \"OPEN_POLLINATED\", \"BULK\", \"BULK_SELFED\", \"BULK_OPEN_POLLINATED\", \"DOUBLE_HAPLOID\" [244]. Parent `parentType` examples: 'MALE', 'FEMALE', 'SELF', 'POPULATION' [246, 247]. Statuses: \"TODO\", \"DONE\", \"SKIPPED\" [248].",
+    "relatedTerminology": "Cross, Crossing Project, Germplasm, Observation Unit."
+  },
+  {
+    "term": "Program",
+    "biologicalDescription": "A **program** represents a breeding program or a short-term project, identified by a unique ID (`programDbId`) and a human-readable name (`programName`) [250]. It includes an `abbreviation`, `commonCropName`, `documentationURL`, `fundingInformation`, `leadPersonDbId` and `leadPersonName`, `objective`, and `programType` (e.g., 'STANARD' for a permanent program or 'PROJECT' for a short-term project) [22, 250-253].",
+    "eli5Description": "A plan or a project for growing plants, like \"wheat breeding\" or \"corn research.\"",
+    "examples": "Program `programType` can be \"STANARD\" or \"PROJECT\" [253].",
+    "relatedTerminology": "Crossing Project, Plate, Observation Unit, Seed Lot, Trial."
+  },
+  {
+    "term": "Read Depth",
+    "biologicalDescription": "**Read Depth** is a type of `genotypeMetadata` that can be associated with each `genotypeValue` in a `Call` [11]. It has an abbreviated code \"RD\" and a full name \"Read Depth\", and maps to a FORMAT field in the VCF file standard [14].",
+    "eli5Description": "How many times a specific spot on a plant's DNA was read during testing, which helps us know how reliable the test result is. More reads usually mean more reliable.",
+    "examples": "Abbreviated code: \"RD\" [14]. Name: \"Read Depth\" [14].",
+    "relatedTerminology": "Genotype Metadata, Call, Genotype Quality, Haplotype Quality."
+  },
+  {
+    "term": "Reference",
+    "biologicalDescription": "A **reference** typically refers to a reference genome sequence (e.g., a chromosome) within a `ReferenceSet`. It is identified by a unique ID (`referenceDbId`) and `referenceName`, and includes its `length`, `md5checksum`, whether it is `isDerived` from another sequence, and associated `sourceAccessions` (e.g., GenBank/ENA/DDBJ IDs) and `sourceGermplasm` [254-257]. It also specifies a `sourceURI` for the sequence file and an ontology `species` term [258, 259].",
+    "eli5Description": "A standard DNA sequence (like a common version of a plant's entire DNA) that we compare other plants' DNA to, to see what's different.",
+    "examples": "Source accessions example: `GCF_000001405.26` [256]. Reference names example: `chr_20` or `X` [158].",
+    "relatedTerminology": "ReferenceSet, Variant, Locus."
+  },
+  {
+    "term": "ReferenceSet",
+    "biologicalDescription": "A **reference set** is a collection of `Reference` sequences, identified by a unique ID (`referenceSetDbId`) and human-readable name (`referenceSetName`) [260]. It includes an `assemblyPUI` (e.g., `GRCH_37`), `commonCropName`, `description`, `md5checksum`, whether it is `isDerived`, `sourceAccessions`, `sourceGermplasm`, `sourceURI`, and an ontology `species` term [24, 260-265]. It defines the `Reference` against which `Variant` data is interpreted [266].",
+    "eli5Description": "A collection of all the standard DNA sequences for a plant, used as a complete comparison guide.",
+    "examples": "Assembly PUI example: `GRCH_37` [24]. Source accessions example: `NC_000001.11` [260].",
+    "relatedTerminology": "Reference, VariantSet."
+  },
+  {
+    "term": "Sample",
+    "biologicalDescription": "A **sample** is a physical specimen collected from an `ObservationUnit`, identified by a unique ID (`sampleDbId`) and a human-readable name (`sampleName`) [267, 268]. It includes information about its `collectionTimestamp`, `sampleDescription`, the `tissueType` sampled (e.g., 'Leaf', 'Root'), the `sampleType` (e.g., 'DNA', 'RNA'), and its location on a `Plate` (`row`, `column`, `well`) [267, 269-273]. It also has a permanent unique identifier (`samplePUI`) [274]. This maps to MIAPPE Sample fields [275-277].",
+    "eli5Description": "A small part taken from a plant, like a leaf or a piece of root, to be studied in the lab.",
+    "examples": "Sample `sampleType` examples: \"DNA\", \"RNA\", \"Tissue\" [271]. `tissueType` examples: 'Leaf', 'Root' [272]. Column numbers range from 1 to 12 [269].",
+    "relatedTerminology": "Observation Unit, Plate, Sample Plate Location, Sample PUI, Sample Type, Tissue Type, CallSet, Image."
+  },
+  {
+    "term": "Sample Plate Location",
+    "biologicalDescription": "The **location of a `Sample` within a `Plate`** is described by its `row`, `column`, and `well` identifiers [267, 269, 273]. The `column` has a maximum value of 12 and minimum of 1 [269].",
+    "eli5Description": "Where exactly a small plant sample is placed on its tray (plate), like \"row A, column 5\" or \"well 23.\"",
+    "examples": "Column values are typically between 1 and 12 [269].",
+    "relatedTerminology": "Sample, Plate."
+  },
+  {
+    "term": "Sample PUI",
+    "biologicalDescription": "A **Permanent Unique Identifier (PUI)** for a `Sample` (`samplePUI`), which can be a DOI, URL, or UUID [274]. This field maps to MIAPPE External ID for a sample [277].",
+    "eli5Description": "A unique, permanent link or code for a specific plant sample, so we can always find its information.",
+    "examples": "DOI, URL, UUID [274].",
+    "relatedTerminology": "Sample."
+  },
+  {
+    "term": "Sample Type",
+    "biologicalDescription": "The **type of `Sample` taken**, such as 'DNA', 'RNA', or 'Tissue' [242, 271]. This information is present in both `Plate` and `Sample` definitions to indicate what kind of biological material is being stored or analyzed.",
+    "eli5Description": "What kind of material was taken from the plant, like its DNA, or a piece of its leaf.",
+    "examples": "Examples include \"DNA\", \"RNA\", \"TISSUE\", \"MIXED\" [242].",
+    "relatedTerminology": "Sample, Plate."
+  },
+  {
+    "term": "Season",
+    "biologicalDescription": "A **season** is a defined period identified by a unique ID (`seasonDbId`), a human-readable name (`seasonName`), and a four-digit `year` [278]. It is used in `Observation` records to indicate the time period when the data was collected [161].",
+    "eli5Description": "A specific time of year, like \"Spring 2023\" or \"Harvest Season.\"",
+    "examples": "Season names include 'Spring', 'Q2', 'Season A' [165, 278]. `seasonDbId` can be a string like '2012' or '1957-2004' [161, 278].",
+    "relatedTerminology": "Observation, Study."
+  },
+  {
+    "term": "Seed Lot",
+    "biologicalDescription": "A **seed lot** represents a specific quantity of seeds, uniquely identified by `seedLotDbId` and `seedLotName` [279]. It stores the current `amount` and `units` (e.g., seeds, bulbs, kg), `createdDate`, `lastUpdated` timestamp, `locationDbId` and `locationName`, `programDbId` and `programName`, a `seedLotDescription`, and `sourceCollection` (e.g., wild, nursery) [279-284]. It can also specify a `contentMixture` if it contains multiple `Germplasm` with their respective percentages [280, 281, 285, 286].",
+    "eli5Description": "A batch of seeds that are stored together. It says how many seeds there are, what kind of plants they are, and where they are kept.",
+    "examples": "Amount `units` can be \"seeds\", \"bulbs\", \"kg of seed\" [280]. `units` for seed lot can be \"seeds\", \"bulbs\", \"kg\", \"tree\" [284]. `sourceCollection` examples: \"wild\", \"nursery\" [279].",
+    "relatedTerminology": "Germplasm, Seed Lot Transaction, Location, Program, Cross, Observation Unit."
+  },
+  {
+    "term": "Seed Lot Transaction",
+    "biologicalDescription": "A **seed lot transaction** records the movement of seeds between seed lots, identified by a unique ID (`transactionDbId`) [287]. It specifies the `amount` and `units` transferred, the source (`fromSeedLotDbId`) and destination (`toSeedLotDbId`) seed lots, a `transactionDescription`, and the `transactionTimestamp` [287-289].",
+    "eli5Description": "A record of when seeds were moved from one storage place to another, or used for something, and how many were moved.",
+    "examples": "Amount `units` can be \"seeds\", \"bulbs\", \"kg of seed\" [288]. `units` for transaction can be \"seeds\", \"bulbs\", \"kg\" [289].",
+    "relatedTerminology": "Seed Lot."
+  },
+  {
+    "term": "Structural Variant Confidence Interval",
+    "biologicalDescription": "In the context of `Variant` objects, **structural variant confidence intervals** are provided by `cipos` for the start position and `ciend` for the end position of the variant [290, 291]. These fields offer an interval with high confidence when the exact base position is unknown, using 0 or 2 signed integers that are added to the start/end position, based on the VCF v4.2 standard [291].",
+    "eli5Description": "A range that tells us how sure we are about the exact starting or ending spot of a big DNA change. It's like saying \"it's somewhere between here and there.\"",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Variant, Structural Variant Length."
+  },
+  {
+    "term": "Structural Variant Length",
+    "biologicalDescription": "The **length of a structural variation** (`svlen`) is a field within a `Variant` object, used specifically if the variant is labeled as a structural variant [292]. This is based on the VCF v4.2 standard [292].",
+    "eli5Description": "How long the piece of DNA is that was copied, deleted, or moved in a plant's genetic code.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Variant, Variant Type, Structural Variant Confidence Interval."
+  },
+  {
+    "term": "Study",
+    "biologicalDescription": "A **study** represents a specific experiment or dataset within a `Trial`, identified by a unique ID (`studyDbId`) and a human-readable name (`studyName`) [293, 294]. It includes a `studyDescription`, `startDate` and `endDate`, `commonCropName`, list of `contacts`, `culturalPractices`, `dataLinks` to external files, `documentationURL`, `environmentParameters`, `experimentalDesign`, `growthFacility` description, `lastUpdate` timestamp, `license`, `locationDbId` and `locationName`, `observationLevels` (hierarchy), `observationUnitsDescription`, `observationVariableDbIds` (wishlist), `seasons`, `studyCode`, `studyPUI` (permanent identifier), and `studyType` (e.g., \"Yield Trial\") [25, 31, 49, 56, 73, 177, 293-298]. This maps extensively to MIAPPE Study fields [54, 55, 59, 60, 74, 124, 152-154, 178, 299-302].",
+    "eli5Description": "A smaller experiment that happens as part of a bigger project. It tells you where it was done, when, how the plants were grown, and what kind of experiment it was.",
+    "examples": "Study `studyType` example: \"Yield Trial\" [298].",
+    "relatedTerminology": "Synonym: Occurrence [303]. **Additional**: Experiment (Maize Field Book), Trial (BreedBase). Trial, Observation Unit, Observation Levels, Location, Contacts, Data Links, Environment Parameters, Experimental Design, Growth Facility, Season, Observation, VariantSet, CallSet."
+  },
+  {
+    "term": "Tissue Type",
+    "biologicalDescription": "The **tissue type** describes the specific plant part (e.g., 'Leaf', 'Root') from which a `Sample` was taken [272]. This field is mapped to MIAPPE Plant anatomical entity and can be an accession number from a suitable controlled vocabulary like Plant Ontology [272, 276].",
+    "eli5Description": "What part of the plant the sample came from, like a leaf, stem, or root.",
+    "examples": "'Leaf', 'Root' [272].",
+    "relatedTerminology": "Sample."
+  },
+  {
+    "term": "Trial",
+    "biologicalDescription": "A **trial** represents an investigation, often comprising multiple `Studies`. It is identified by a unique ID (`trialDbId`) and a human-readable name (`trialName`), and includes a `trialDescription` [304]. It contains information about its `commonCropName`, whether it is `active`, `contacts` (people involved), `datasetAuthorships` (license, submission/public release dates), `documentationURL`, `startDate` and `endDate`, `programDbId` and `programName`, `publications` (DOIs or references), and a `trialPUI` (permanent identifier) [26, 29, 304-310]. This maps extensively to MIAPPE Investigation fields [34-36, 311-315].",
+    "eli5Description": "A big experiment or project that might contain smaller experiments inside it. It keeps track of who did it, when, and any papers written about it.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "**Additional**: Experiment Series (Maize Field Book), Trial Folder (BreedBase). Study, Contacts, Program, Plate, Observation Unit."
+  },
+  {
+    "term": "Unphased Allele Calls",
+    "biologicalDescription": "The concept of **unphased allele calls** is indicated by the `sepUnphased` field in `AlleleMatrix` and `VariantSet` `availableFormats`, which describes the string used as a separator for these calls [316, 317]. Unphased calls occur when the specific parental chromosome (e.g., maternal or paternal) on which each allele resides is not known, often when the `phaseSet` field in a `Call` is not populated [12].",
+    "eli5Description": "The two versions of a gene a plant has, but we don't know for sure which one came from its mother and which from its father.",
+    "examples": "N/A from sources.",
+    "relatedTerminology": "Allele, Phase Set, Unphased Allele Separator."
+  },
+  {
+    "term": "Unphased Allele Separator",
+    "biologicalDescription": "The **string used as a separator for unphased allele calls**, as defined by the `sepUnphased` field in `AlleleMatrix` and `VariantSet` `availableFormats` [316, 317]. This separator is crucial for parsing genotype data where the phase of the alleles is not known.",
+    "eli5Description": "A special symbol that separates the two versions of a gene when we don't know which one came from the mom and which from the dad.",
+    "examples": "N/A from sources, but typically `/` in common VCF formats (information not from provided sources).",
+    "relatedTerminology": "Allele Matrix, VariantSet, Unphased Allele Calls."
+  },
+  {
+    "term": "Variant",
+    "biologicalDescription": "A **variant** represents a difference in the DNA sequence compared to a reference, identified by a unique ID (`variantDbId`) and human-readable names (`variantNames`) [292, 318]. It includes details about the `referenceBases` and `alternateBases`, `start` and `end` positions, and can represent structural variations denoted by `variantType` (e.g., DUP, DEL), `svlen` (structural variant length), `cipos` (confidence interval for start), and `ciend` (confidence interval for end) [155, 156, 158, 290, 291, 319]. It is associated with a `Reference` and `ReferenceSet`, and can also represent a `Marker` [156-159].",
+    "eli5Description": "A tiny change in the plant's DNA code. It's like a typo in a very long book, which can make a difference.",
+    "examples": "Variant `variantType` examples: \"DUP\" (duplication of sequence), \"DEL\" (deletion of sequence) [319].",
+    "relatedTerminology": "Allele, Call, Marker, Reference, ReferenceSet, VariantSet, Variant Type, Variant Filters, Structural Variant Length, Structural Variant Confidence Interval, Locus."
+  },
+  {
+    "term": "Variant Filters",
+    "biologicalDescription": "**Variant filters** are criteria used to determine the quality or validity of a `Variant`. The `filtersApplied` boolean indicates if any filters were used for a variant, `filtersPassed` (boolean) indicates if all filters passed (VCF column 7 \"PASS\"), and `filtersFailed` lists specific filters that did not pass [320, 321].",
+    "eli5Description": "Checks that are run on the DNA changes to make sure they are real and reliable, not just errors from the testing.",
+    "examples": "A passing filter status is indicated by \"PASS\" in VCF column 7 [321].",
+    "relatedTerminology": "Variant."
+  },
+  {
+    "term": "Variant Set",
+    "biologicalDescription": "A **variant set** is a data set originating from a sequencing event, containing `Variant` data. It has a unique ID (`variantSetDbId`) and `variantSetName`, and links to the `referenceSetDbId` against which its variants are interpreted [266]. It specifies the `callSetCount` and `variantCount` it includes, lists `availableFormats` (data formats like VCF, Hapmap and file formats like text/csv, application/json), and `metadataFields` (e.g., Genotype Quality, Read Depth) that are available [126, 322-327]. It also includes details about the `analysis` performed [6-8].",
+    "eli5Description": "A big group of DNA changes (variants) found in many plant samples, often from one big genetic study. It tells you how many samples were tested and what kind of changes were found.",
+    "examples": "Available `dataFormat` examples: \"DartSeq\", \"VCF\", \"Hapmap\", \"tabular\", \"JSON\" [323]. Available `fileFormat` examples: \"text/csv\", \"text/tsv\", \"application/excel\", \"application/zip\", \"application/json\" [126]. Metadata fields abbreviations: \"GQ\", \"RD\", \"HQ\" [327].",
+    "relatedTerminology": "Variant, CallSet, ReferenceSet, Analysis, Homozygotes Expansion, Unphased Allele Separator, Unknown String."
+  },
+  {
+    "term": "Variant Type",
+    "biologicalDescription": "The **variant type** (`variantType`) is a field within a `Variant` object used to denote structural variations [319].",
+    "eli5Description": "Describes what kind of DNA change it is, like if a piece of DNA is duplicated or deleted.",
+    "examples": "Examples include \"DUP\" (duplication of sequence) and \"DEL\" (deletion of sequence) [319].",
+    "relatedTerminology": "Variant, Structural Variant Length."
+  }
+];
+
+
+        // List.js options
+        var options = {
+            valueNames: [
+                'term',
+				'biologicalDescription',
+				'eli5Description',
+				'examples',
+				'relatedTerminology'
+            ],
+            // This template will be used to create each item in the list
+            item: `
+                <div class="dictionary-entry">
+    <h3 class="term"></h3>
+    <div class="description-section">
+        <strong>Thorough Biological Description:</strong>
+        <p class="biologicalDescription"></p>
+    </div>
+    <div class="description-section">
+        <strong>ELI5 for Computer Scientists:</strong>
+        <p class="eli5Description"></p>
+    </div>
+    <div class="description-section">
+        <strong>Examples:</strong>
+        <p class="examples"></p>
+    </div>
+    <div class="description-section">
+        <strong>Related Terminology Explanation:</strong>
+        <div class="relatedTerminology"></div>
+    </div>
+</div>
+            `
+        };
+
+        // Initialize List.js
+        // The first argument is the ID of the container element ('dictionary-terms')
+        // The second argument is the options object
+        // The third argument is the array of data values (dictionaryData)
+        var dictionaryList = new List('dictionary-terms', options, dictionaryData);
+
+        // Optional: If you want to add more items later
+        // dictionaryList.add({ term: 'New Term', biologicalDescription: '...', eli5Description: '...' });
+    </script>
+
+</body>
+</html>
